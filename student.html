@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="원의 현 탐구 학생용 실시간 웹앱">
+  <title>학생용 | 원의 현 탐구</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app-shell student-shell">
+    <header class="topbar compact">
+      <div>
+        <a class="back-link" href="./index.html">← 홈</a>
+        <p class="eyebrow">STUDENT LAB</p>
+        <h1>현의 길이를 결정하는 것은 무엇일까?</h1>
+      </div>
+      <div id="studentConnectionBadge" class="badge neutral">연결 확인 중</div>
+    </header>
+
+    <section id="setupWarning" class="notice warning hidden">
+      <b>설정이 필요합니다.</b>
+      <span>교사에게 웹앱 설정 상태를 확인해 주세요.</span>
+    </section>
+
+    <section id="joinSection" class="join-card">
+      <p class="section-kicker">JOIN CLASS</p>
+      <h2>수업방 입장</h2>
+      <div class="join-fields">
+        <label class="field">
+          <span>수업방 코드</span>
+          <input id="joinCode" type="text" maxlength="6" autocomplete="off" placeholder="예: A1B2C3">
+        </label>
+        <label class="field">
+          <span>번호 또는 별칭</span>
+          <input id="studentAlias" type="text" maxlength="20" autocomplete="off" placeholder="예: 3101">
+        </label>
+      </div>
+      <button id="joinBtn" class="btn primary wide" type="button">입장하기</button>
+      <p class="privacy-note">이름 대신 번호나 별칭 사용을 권장합니다.</p>
+      <div id="joinStatus" class="status hidden"></div>
+    </section>
+
+    <section id="classSection" class="hidden">
+      <div class="class-banner">
+        <div>
+          <span id="classCodeBadge" class="mini-code"></span>
+          <b id="classTitle"></b>
+        </div>
+        <div>
+          현재 단계 <strong id="phaseLabel"></strong>
+        </div>
+      </div>
+
+      <!-- EXPLORE -->
+      <section class="student-phase hidden" data-student-phase="explore">
+        <div class="two-col">
+          <article class="card">
+            <p class="section-kicker">① 조작·관찰</p>
+            <h2>현을 자유롭게 움직여 보자</h2>
+            <p class="helper">
+              파란 현이나 가운데 점을 직접 끌어 보세요. 방향을 바꾸면서
+              <b>중심에서의 거리와 현의 길이</b>를 관찰합니다.
+            </p>
+
+            <div class="svg-wrap">
+              <svg id="exploreSvg" viewBox="0 0 520 430" role="img" aria-label="현의 위치와 길이를 탐구하는 원">
+                <circle class="circle-outline" cx="260" cy="205" r="150"></circle>
+                <circle class="center-dot" cx="260" cy="205" r="5"></circle>
+                <text class="svg-label" x="272" y="198">O</text>
+                <line id="explorePerp" class="perp-line"></line>
+                <line id="exploreChord" class="chord chord-a" tabindex="0"></line>
+                <circle id="exploreMid" class="drag-handle chord-a-fill" r="10" tabindex="0"></circle>
+                <text id="exploreDistanceLabel" class="svg-note"></text>
+                <text id="exploreLengthLabel" class="svg-note strong"></text>
+              </svg>
+            </div>
+
+            <div class="controls two">
+              <label>
+                <span>중심에서 현까지의 거리</span>
+                <input id="exploreDistance" type="range" min="0" max="145" value="45">
+              </label>
+              <label>
+                <span>현의 위치·방향</span>
+                <input id="exploreAngle" type="range" min="0" max="359" value="270">
+              </label>
+            </div>
+
+            <div class="metrics three">
+              <div class="metric"><span>중심 거리</span><strong id="exploreDistanceValue"></strong></div>
+              <div class="metric"><span>현 길이</span><strong id="exploreLengthValue"></strong></div>
+              <div class="metric"><span>방향</span><strong id="exploreAngleValue"></strong></div>
+            </div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-kicker">OBSERVE</p>
+                  <h2>관찰 기록</h2>
+                </div>
+                <button id="recordCurrent" class="btn primary" type="button">기록</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>거리</th><th>방향</th><th>길이</th></tr></thead>
+                  <tbody id="recordBody">
+                    <tr class="empty-row"><td colspan="3">아직 기록이 없습니다.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="tok-card">
+              <div class="tok-tag">TOK QUESTION</div>
+              <p>여러 번 관찰해서 같은 결과가 나왔다면, 우리는 그 사실을 <b>‘안다’</b>고 말할 수 있을까?</p>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <!-- HYPOTHESIS -->
+      <section class="student-phase hidden" data-student-phase="hypothesis">
+        <div class="two-col hypothesis-layout">
+          <article class="card">
+            <p class="section-kicker">② 가설 제출</p>
+            <h2>관찰한 관계를 한 문장으로 표현하자</h2>
+            <p class="helper">정답을 맞히는 단계가 아닙니다. 지금까지 관찰한 것을 자신의 언어로 표현하세요.</p>
+
+            <textarea id="studentHypothesis" rows="5"
+              placeholder="예: 중심에서 같은 거리에 있는 두 현의 길이는 같을 것이다."></textarea>
+            <button id="submitHypothesisBtn" class="btn primary wide" type="button">내 가설 제출 / 수정</button>
+            <div id="hypothesisStatus" class="status hidden"></div>
+
+            <article class="tok-card nested">
+              <div class="tok-tag">TOK QUESTION</div>
+              <p>같은 현상을 보고도 서로 다른 가설을 세울 수 있는 이유는 무엇일까?</p>
+            </article>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">CLASS VIEW</p>
+            <h2>AI가 정리한 우리 반 가설</h2>
+            <p id="clusterWaiting" class="helper">교사가 분류 결과를 공개하면 이곳에 나타납니다.</p>
+            <div id="studentClusters" class="cluster-output hidden"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- VERIFY -->
+      <section class="student-phase hidden" data-student-phase="verify">
+        <div class="two-col">
+          <article class="card">
+            <p class="section-kicker">③ 가설 검증</p>
+            <h2>두 현을 움직여 가설을 흔들어 보자</h2>
+            <p class="helper">
+              현 A와 현 B의 <b>거리와 방향을 각각</b> 바꿉니다. 방향이 달라도 관계가 유지되는지 확인하세요.
+            </p>
+
+            <div class="svg-wrap">
+              <svg id="verifySvg" viewBox="0 0 520 450" role="img" aria-label="두 현을 비교하는 원">
+                <circle class="circle-outline" cx="260" cy="215" r="155"></circle>
+                <circle class="center-dot" cx="260" cy="215" r="5"></circle>
+                <text class="svg-label" x="272" y="208">O</text>
+
+                <line id="verifyPerpA" class="perp-line a"></line>
+                <line id="verifyChordA" class="chord chord-a" tabindex="0"></line>
+                <circle id="verifyMidA" class="drag-handle chord-a-fill" r="10" tabindex="0"></circle>
+
+                <line id="verifyPerpB" class="perp-line b"></line>
+                <line id="verifyChordB" class="chord chord-b" tabindex="0"></line>
+                <circle id="verifyMidB" class="drag-handle chord-b-fill" r="10" tabindex="0"></circle>
+              </svg>
+            </div>
+
+            <div class="controls two">
+              <fieldset>
+                <legend>현 A</legend>
+                <label><span>중심 거리</span><input id="distanceA" type="range" min="0" max="150" value="48"></label>
+                <label><span>위치·방향</span><input id="angleA" type="range" min="0" max="359" value="225"></label>
+              </fieldset>
+              <fieldset>
+                <legend>현 B</legend>
+                <label><span>중심 거리</span><input id="distanceB" type="range" min="0" max="150" value="82"></label>
+                <label><span>위치·방향</span><input id="angleB" type="range" min="0" max="359" value="30"></label>
+              </fieldset>
+            </div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="card">
+              <h2>실시간 비교</h2>
+              <div class="metrics two">
+                <div class="metric a"><span>현 A</span><strong id="dataA"></strong></div>
+                <div class="metric b"><span>현 B</span><strong id="dataB"></strong></div>
+              </div>
+              <div id="relationshipMessage" class="relationship"></div>
+              <div class="mission-buttons">
+                <button id="missionSameDistance" class="btn primary wide" type="button">미션 1 · 같은 거리 만들기</button>
+                <button id="missionSameLength" class="btn ghost wide" type="button">미션 2 · 같은 길이 만들기</button>
+              </div>
+              <p id="missionMessage" class="helper mission-msg">두 현을 자유롭게 움직이며 가설을 검증하세요.</p>
+            </article>
+
+            <article class="tok-card">
+              <div class="tok-tag">TOK QUESTION</div>
+              <p>컴퓨터 화면에서 수백 번 참인 명제와 <b>수학적으로 증명된 명제</b>는 같은 종류의 지식일까?</p>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <!-- PROVE -->
+      <section class="student-phase hidden" data-student-phase="prove">
+        <div class="two-col prove-layout">
+          <aside class="side-stack">
+            <article class="card">
+              <p class="section-kicker">④ 수학적 정당화</p>
+              <h2>관찰에서 증명으로</h2>
+              <p class="helper">
+                시뮬레이션은 관계를 발견하는 데 도움을 줍니다.
+                이제 왜 항상 참인지 전시 학습과 합동을 이용하여 설명합니다.
+              </p>
+              <div class="fact-box">
+                <strong>사용할 수 있는 사실</strong>
+                <ol>
+                  <li>한 원의 반지름의 길이는 같다.</li>
+                  <li>원의 중심에서 현에 내린 수선은 그 현을 이등분한다.</li>
+                  <li>두 직각삼각형의 빗변과 다른 한 변의 길이가 각각 같으면 두 삼각형은 합동이다.</li>
+                </ol>
+              </div>
+            </article>
+
+            <article class="tok-card">
+              <div class="tok-tag">TOK QUESTION</div>
+              <p>수학에서 <b>‘보았다’</b>는 것과 <b>‘증명했다’</b>는 것은 어떻게 다를까?</p>
+            </article>
+          </aside>
+
+          <article class="card">
+            <h2>증명 흐름 완성하기</h2>
+            <p class="helper">각 단계가 왜 성립하는지 가장 적절한 근거를 연결하세요.</p>
+
+            <div class="proof-step">
+              <div class="step-no">1</div>
+              <div>
+                <p>두 직각삼각형의 빗변의 길이는 서로 같다.</p>
+                <select id="proof1">
+                  <option value="">근거 선택</option>
+                  <option value="radius">한 원의 반지름의 길이는 같다.</option>
+                  <option value="bisect">원의 중심에서 현에 내린 수선은 현을 이등분한다.</option>
+                  <option value="congruence">두 삼각형은 합동이다.</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="proof-arrow">↓</div>
+
+            <div class="proof-step">
+              <div class="step-no">2</div>
+              <div>
+                <p>빗변의 길이와 다른 한 변의 길이가 각각 같으므로 두 직각삼각형은 합동이다.</p>
+                <select id="proof2">
+                  <option value="">근거 선택</option>
+                  <option value="radius">한 원의 반지름</option>
+                  <option value="congruence">직각삼각형의 합동 조건</option>
+                  <option value="bisect">현의 이등분</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="proof-arrow">↓</div>
+
+            <div class="proof-step">
+              <div class="step-no">3</div>
+              <div>
+                <p>합동인 삼각형의 대응변의 길이가 같고, 수선의 발은 현의 중점이므로 두 현의 길이는 같다.</p>
+                <select id="proof3">
+                  <option value="">근거 선택</option>
+                  <option value="bisect">원의 중심에서 현에 내린 수선은 현을 이등분한다.</option>
+                  <option value="radius">한 원의 반지름</option>
+                  <option value="inscribed">원주각의 성질</option>
+                </select>
+              </div>
+            </div>
+
+            <button id="checkProof" class="btn primary wide" type="button">증명 흐름 확인</button>
+            <div id="proofMessage" class="status hidden"></div>
+
+            <div class="divider"></div>
+
+            <a id="geniaTutorBtn" class="btn evaluation wide disabled-link" href="#" target="_blank" rel="noopener">
+              지니아튜터 형성평가 시작
+            </a>
+            <p id="geniaTutorHelp" class="helper">교사가 형성평가 링크를 설정하면 활성화됩니다.</p>
+          </article>
+        </div>
+      </section>
+    </section>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+  </main>
+
+  <script type="module" src="./js/student.js"></script>
+</body>
+</html>
